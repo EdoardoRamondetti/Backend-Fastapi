@@ -1,12 +1,9 @@
 from fastapi.testclient import TestClient
 from main import app
-from database import get_db
-from tests.common_methods import override_get_db,get_token
+from tests.common_methods import get_token
 from models import User
 
 client = TestClient(app)
-
-app.dependency_overrides[get_db] = override_get_db
 
 def test_admin_route_as_normal_user():
     token = get_token({"email":"antonio@gmail.com", "password":"password123"})

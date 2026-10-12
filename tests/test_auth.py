@@ -1,11 +1,8 @@
 from fastapi.testclient import TestClient
 from main import app
-from tests.common_methods import override_get_db,get_token
-from database import get_db
+from tests.common_methods import get_token
 
 client = TestClient(app)
-
-app.dependency_overrides[get_db] = override_get_db
 
 def test_profile_without_auth():
     response = client.get("/test-auth")
