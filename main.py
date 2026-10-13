@@ -1,9 +1,14 @@
 from fastapi import FastAPI, Depends
+from fastapi.responses import JSONResponse
 from routers import users,posts,auth
 from models import User
 from dependecies import get_current_user,get_current_admin
+import logging_config
 
 #Per avviare script: fastapi dev main.py
+
+logger = logging_config.logging.getLogger(__name__)
+logger.info("Applicazione avviata")
 
 app = FastAPI()
 app.include_router(auth.router)
@@ -11,6 +16,11 @@ app.include_router(users.privateRouter)
 app.include_router(users.publicRouter)
 app.include_router(posts.privateRouter)
 app.include_router(posts.publicRouter)
+
+@app.exception_handler(Exception)
+def global_exception_handler(request,exception):
+    logger.exception("Errore non gestito durante la richiesta: %s %s",request.method, request.url.path)
+    return JSONResponse(content={"detail":"Internal server error"},status_code=500)
 
 @app.get("/")
 def home():
