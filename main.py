@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from routers import users,posts,auth
 from models import User
 from dependecies import get_current_user,get_current_admin
@@ -16,6 +17,15 @@ app.include_router(users.privateRouter)
 app.include_router(users.publicRouter)
 app.include_router(posts.privateRouter)
 app.include_router(posts.publicRouter)
+
+#Middleware CORS di esempio per angular
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
+)
 
 @app.exception_handler(Exception)
 def global_exception_handler(request,exception):
