@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Depends,HTTPException
+from fastapi import APIRouter,Depends,HTTPException,BackgroundTasks
 from fastapi.params import Query
 from database import get_db
 from sqlalchemy.orm import Session,joinedload
@@ -6,6 +6,7 @@ from models import Post,User
 from schemas import PostAndUserResponse, PostCreate,PostResponse
 from dependecies import get_current_user
 from typing import Literal
+import time
 
 privateRouter = APIRouter(prefix="/posts", tags=["Post"], dependencies=[Depends(get_current_user)])
 publicRouter = APIRouter(prefix="/posts", tags=["Post"])
@@ -42,12 +43,18 @@ def get_post_by_id(post_id:int,current_user:User = Depends(get_current_user),db:
 def get_post(post:Post = Depends(get_post_by_id)):
     return post
 
+def send_notification(email: str, post_title: str):
+    time.sleep(5)
+    print(f"Notifica inviata a {email}: nuovo post '{post_title}'")
+
 @privateRouter.post("",response_model=PostResponse)
-def add_post(post:PostCreate , current_user:User = Depends(get_current_user), db:Session = Depends(get_db)):
+def add_post(post:PostCreate , background_tasks:BackgroundTasks,current_user:User = Depends(get_current_user),db:Session = Depends(get_db)):
     newPost = Post(title = post.title, content = post.content, user = current_user)
     db.add(newPost)
     db.commit()
     db.refresh(newPost)
+
+    background_tasks.add_task(send_notification,current_user.email, newPost.title)
     return newPost
 
 @privateRouter.put("/{post_id}")
