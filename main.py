@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends,Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from routers import users,posts,auth
@@ -20,6 +20,11 @@ app.include_router(posts.publicRouter)
 
 #Middleware CORS di esempio per angular
 
+@app.exception_handler(Exception)
+def global_exception_handler(request,exception):
+    logger.exception("Errore non gestito durante la richiesta: %s %s",request.method, request.url.path)
+    return JSONResponse(content={"detail":"Internal server error"},status_code=500)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:4200"],
@@ -27,10 +32,15 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
-@app.exception_handler(Exception)
-def global_exception_handler(request,exception):
-    logger.exception("Errore non gestito durante la richiesta: %s %s",request.method, request.url.path)
-    return JSONResponse(content={"detail":"Internal server error"},status_code=500)
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info(f"Metodo HTTP: {request.method}")
+    logger.info(f"Url: {request.url.path}")
+
+    response = await call_next(request)
+
+    logger.info(f"Status code: {response.status_code}")
+    return response
 
 @app.get("/")
 def home():
