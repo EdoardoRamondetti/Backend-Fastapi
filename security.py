@@ -5,6 +5,7 @@ from datetime import datetime,timedelta,timezone
 from config import settings
 
 JWT_KEY = settings.JWT_SECRET_KEY
+JWT_TOKEN_EXPIRE_MINUTES = settings.JWT_TOKEN_EXPIRE_MINUTES
 ALGORITHM = "HS256"
 
 password_hash = PasswordHash.recommended()
@@ -14,7 +15,7 @@ def create_token(data):
     payload = {
         "sub": str(data.id),
         "iat": now,
-        "exp": now + timedelta(minutes=30)
+        "exp": now + timedelta(minutes=JWT_TOKEN_EXPIRE_MINUTES)
     }
 
     token = jwt.encode(payload, JWT_KEY, ALGORITHM)
