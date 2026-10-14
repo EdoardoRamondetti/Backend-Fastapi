@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends,Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from routers import users,posts,auth
 from models import User
@@ -42,9 +42,21 @@ async def log_requests(request: Request, call_next):
     logger.info(f"Status code: {response.status_code}")
     return response
 
-@app.get("/")
+@app.get("/",response_class=HTMLResponse)
 def home():
-    return {"message": "API is running"}
+    return """
+    <!DOCTYPE html>
+    <html lang="it">
+      <head>
+        <meta charset="UTF-8">
+        <title>La mia applicazione</title>
+      </head>
+      <body>
+        <h1>Questo è un server fastApi</h1>
+        <p>Questa è una pagina HTML.</p>
+      </body>
+    </html>
+    """
 
 @app.get("/test-auth")
 def test_auth(payload = Depends(get_current_user)):
